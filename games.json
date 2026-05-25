@@ -1,5 +1,5 @@
 {
-  "version": 1,
+  "version": 2,
   "updatedAt": "2026-05-25",
   "categories": [
     { "id": "featured",  "i18nKey": "category.featured",  "order": 0 },
@@ -12,6 +12,21 @@
     { "id": "strategy",  "i18nKey": "category.strategy",  "order": 7 }
   ],
   "games": [
+    {
+      "id": "game-03-kipscity",
+      "title": "Kips City",
+      "description": "An original cozy life-simulation game. Build your city, befriend your neighbors, live your story. Runs offline, smooth on 4GB-RAM phones.",
+      "categories": ["adventure", "featured"],
+      "thumbnail": "/src/games/game-03-kipscity/thumb.svg",
+      "banner": "/src/games/game-03-kipscity/banner.svg",
+      "entry": "/src/games/game-03-kipscity/game.js",
+      "version": "0.1.0",
+      "buildStage": "batch-3a",
+      "controls": { "mobile": "touch", "desktop": "mouse+keyboard" },
+      "tags": ["life-sim", "sandbox", "cozy", "adventure"],
+      "orientation": "any",
+      "minRamMb": 2048
+    },
     {
       "id": "game-01-snake",
       "title": "Neon Snake",

@@ -1,0 +1,114 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 720" role="img" aria-label="Kips City banner">
+  <defs>
+    <linearGradient id="kcb-sky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#ffd6a3"/>
+      <stop offset="35%" stop-color="#ffaca0"/>
+      <stop offset="75%" stop-color="#9c88c5"/>
+      <stop offset="100%" stop-color="#3d2c5e"/>
+    </linearGradient>
+    <radialGradient id="kcb-sun" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0%" stop-color="#fff5cb"/>
+      <stop offset="55%" stop-color="#ffd57a"/>
+      <stop offset="100%" stop-color="#ffd57a" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="kcb-grass-a" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#a4dc7a"/>
+      <stop offset="100%" stop-color="#6fae54"/>
+    </linearGradient>
+    <linearGradient id="kcb-grass-b" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#8dcd5d"/>
+      <stop offset="100%" stop-color="#5fa047"/>
+    </linearGradient>
+    <linearGradient id="kcb-water" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#a4ddef"/>
+      <stop offset="100%" stop-color="#4d9fcb"/>
+    </linearGradient>
+    <linearGradient id="kcb-path" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#ecd9ad"/>
+      <stop offset="100%" stop-color="#caa97a"/>
+    </linearGradient>
+    <filter id="kcb-soft" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="0.4"/>
+    </filter>
+  </defs>
+
+  <!-- Sky -->
+  <rect width="1280" height="720" fill="url(#kcb-sky)"/>
+
+  <!-- Sun -->
+  <ellipse cx="280" cy="220" rx="320" ry="320" fill="url(#kcb-sun)" opacity="0.85"/>
+
+  <!-- Distant hills -->
+  <path d="M 0 420 Q 200 360 420 400 T 820 380 T 1280 410 L 1280 720 L 0 720 Z"
+        fill="#5b78a8" opacity="0.55"/>
+  <path d="M 0 460 Q 240 420 480 450 T 940 440 T 1280 460 L 1280 720 L 0 720 Z"
+        fill="#3e547e" opacity="0.55"/>
+
+  <!-- Clouds -->
+  <ellipse cx="900" cy="160" rx="120" ry="22" fill="#fff" opacity="0.55"/>
+  <ellipse cx="1000" cy="190" rx="80" ry="16" fill="#fff" opacity="0.4"/>
+  <ellipse cx="240" cy="120" rx="80" ry="14" fill="#fff" opacity="0.35"/>
+
+  <!-- Isometric town grid -->
+  <g transform="translate(640, 460)" filter="url(#kcb-soft)">
+    <!-- Generate a small isometric patch programmatically with explicit polys -->
+    <!-- Back row (deepest) -->
+    <g>
+      <polygon points="0,-160 64,-128 0,-96 -64,-128" fill="url(#kcb-grass-a)"/>
+      <polygon points="64,-128 128,-96 64,-64 0,-96" fill="url(#kcb-grass-b)"/>
+      <polygon points="-64,-128 0,-96 -64,-64 -128,-96" fill="url(#kcb-grass-b)"/>
+      <polygon points="128,-96 192,-64 128,-32 64,-64" fill="url(#kcb-grass-a)"/>
+      <polygon points="-128,-96 -64,-64 -128,-32 -192,-64" fill="url(#kcb-grass-a)"/>
+    </g>
+    <!-- Middle rows -->
+    <g>
+      <polygon points="0,-96 64,-64 0,-32 -64,-64" fill="url(#kcb-path)"/>
+      <polygon points="64,-64 128,-32 64,0 0,-32" fill="url(#kcb-grass-a)"/>
+      <polygon points="-64,-64 0,-32 -64,0 -128,-32" fill="url(#kcb-grass-a)"/>
+      <polygon points="192,-64 256,-32 192,0 128,-32" fill="url(#kcb-grass-b)"/>
+      <polygon points="-192,-64 -128,-32 -192,0 -256,-32" fill="url(#kcb-grass-b)"/>
+      <polygon points="0,-32 64,0 0,32 -64,0" fill="url(#kcb-path)"/>
+    </g>
+    <!-- Front rows -->
+    <g>
+      <polygon points="64,0 128,32 64,64 0,32" fill="url(#kcb-grass-b)"/>
+      <polygon points="-64,0 0,32 -64,64 -128,32" fill="url(#kcb-water)"/>
+      <polygon points="-128,32 -64,64 -128,96 -192,64" fill="url(#kcb-water)"/>
+      <polygon points="0,32 64,64 0,96 -64,64" fill="url(#kcb-path)"/>
+      <polygon points="128,32 192,64 128,96 64,64" fill="url(#kcb-grass-a)"/>
+    </g>
+  </g>
+
+  <!-- Houses -->
+  <g transform="translate(720, 380)">
+    <polygon points="0,0 36,-24 72,0 72,42 0,42" fill="#f7c873"/>
+    <polygon points="0,0 36,-24 72,0 36,16" fill="#dc9046"/>
+    <rect x="28" y="14" width="16" height="28" fill="#5a3a1f"/>
+    <rect x="8" y="6" width="10" height="10" fill="#bfe6f0" opacity="0.7"/>
+    <rect x="54" y="6" width="10" height="10" fill="#bfe6f0" opacity="0.7"/>
+  </g>
+  <g transform="translate(550, 410)">
+    <polygon points="0,0 32,-22 64,0 64,38 0,38" fill="#f29393"/>
+    <polygon points="0,0 32,-22 64,0 32,14" fill="#c25c5c"/>
+    <rect x="24" y="12" width="14" height="26" fill="#5a3a1f"/>
+    <rect x="8" y="6" width="8" height="8" fill="#bfe6f0" opacity="0.7"/>
+  </g>
+
+  <!-- Trees -->
+  <g transform="translate(440, 460)">
+    <ellipse cx="0" cy="0" rx="18" ry="20" fill="#5fa047"/>
+    <ellipse cx="-6" cy="-6" rx="10" ry="10" fill="#86c956"/>
+    <rect x="-3" y="14" width="6" height="14" fill="#5a3a1f"/>
+  </g>
+  <g transform="translate(880, 480)">
+    <ellipse cx="0" cy="0" rx="22" ry="24" fill="#5fa047"/>
+    <ellipse cx="6" cy="-6" rx="12" ry="12" fill="#9bd66f"/>
+    <rect x="-3" y="18" width="6" height="14" fill="#5a3a1f"/>
+  </g>
+
+  <!-- Title -->
+  <g>
+    <text x="80" y="140" font-family="system-ui,-apple-system,sans-serif" font-size="92" font-weight="800" fill="#fff" letter-spacing="-1" style="filter: drop-shadow(0 4px 16px rgba(0,0,0,0.4))">Kips City</text>
+    <text x="82" y="180" font-family="system-ui,sans-serif" font-size="22" font-weight="600" fill="#ffd9b5" letter-spacing="6">LIVE  ·  BUILD  ·  BELONG</text>
+  </g>
+</svg>
