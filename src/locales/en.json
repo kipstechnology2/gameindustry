@@ -1,0 +1,82 @@
+{
+  "meta": {
+    "appName": "Games Studio 2026",
+    "tagline": "Premium HTML5 Game Portal"
+  },
+  "common": {
+    "loading": "Loading…",
+    "play": "Play",
+    "playNow": "Play Now",
+    "pause": "Pause",
+    "resume": "Resume",
+    "restart": "Restart",
+    "exit": "Exit",
+    "back": "Back",
+    "soundOn": "Sound On",
+    "soundOff": "Sound Off",
+    "settings": "Settings",
+    "language": "Language",
+    "highscore": "Highscore",
+    "score": "Score",
+    "level": "Level",
+    "coins": "Coins",
+    "close": "Close",
+    "ok": "OK",
+    "retry": "Retry"
+  },
+  "nav": {
+    "home": "Home",
+    "library": "Library",
+    "settings": "Settings",
+    "about": "About"
+  },
+  "home": {
+    "title": "Premium HTML5 Games",
+    "subtitle": "Play instantly. No download. Works offline."
+  },
+  "category": {
+    "featured": "Featured",
+    "action": "Action",
+    "arcade": "Arcade",
+    "puzzle": "Puzzle",
+    "racing": "Racing",
+    "adventure": "Adventure",
+    "sports": "Sports",
+    "strategy": "Strategy"
+  },
+  "detail": {
+    "controls": "Controls",
+    "tags": "Tags",
+    "category": "Category",
+    "description": "About this game"
+  },
+  "pause": {
+    "title": "Paused",
+    "exitConfirm": "Exit to menu?"
+  },
+  "settings": {
+    "audio": "Audio",
+    "graphics": "Graphics",
+    "language": "Language",
+    "data": "Data",
+    "clearCache": "Clear cache",
+    "version": "Version"
+  },
+  "footer": {
+    "studio": "GAMES STUDIO 2026",
+    "rights": "All rights reserved.",
+    "privacy": "Privacy Policy",
+    "terms": "Terms of Service",
+    "contact": "Contact"
+  },
+  "error": {
+    "loadCatalog": "Could not load the game catalog. Please retry.",
+    "loadGame": "Could not load this game.",
+    "offline": "You are offline. Showing cached content."
+  },
+  "a11y": {
+    "skipToContent": "Skip to content",
+    "openMenu": "Open menu",
+    "closeMenu": "Close menu"
+  }
+}

@@ -1,0 +1,77 @@
+/* Modern minimal reset */
+
+*, *::before, *::after { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  background: var(--c-bg-0);
+  color: var(--c-text);
+  font-family: var(--ff-sans);
+  font-size: 16px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+  overscroll-behavior: none;
+}
+
+body {
+  min-height: 100dvh;
+  /* Prevent rubber-banding on iOS during gameplay */
+  -webkit-tap-highlight-color: transparent;
+}
+
+img, picture, svg, video, canvas {
+  display: block;
+  max-width: 100%;
+  height: auto;
+}
+
+button, input, select, textarea {
+  font: inherit;
+  color: inherit;
+  background: none;
+  border: 0;
+}
+
+button { cursor: pointer; }
+
+a {
+  color: var(--c-accent);
+  text-decoration: none;
+}
+a:hover { color: var(--c-accent-3); }
+
+ul, ol { list-style: none; margin: 0; padding: 0; }
+
+[hidden] { display: none !important; }
+
+/* a11y */
+.skip-link {
+  position: absolute;
+  left: -9999px;
+  top: 0;
+  background: var(--c-accent);
+  color: #fff;
+  padding: var(--s-3) var(--s-4);
+  z-index: var(--z-toast);
+  border-radius: var(--r-md);
+}
+.skip-link:focus { left: var(--s-3); top: var(--s-3); }
+
+:focus-visible {
+  outline: 2px solid var(--c-accent-3);
+  outline-offset: 2px;
+  border-radius: var(--r-sm);
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

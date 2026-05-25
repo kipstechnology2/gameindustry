@@ -1,0 +1,44 @@
+{
+  "version": 1,
+  "updatedAt": "2026-05-25",
+  "categories": [
+    { "id": "featured",  "i18nKey": "category.featured",  "order": 0 },
+    { "id": "action",    "i18nKey": "category.action",    "order": 1 },
+    { "id": "arcade",    "i18nKey": "category.arcade",    "order": 2 },
+    { "id": "puzzle",    "i18nKey": "category.puzzle",    "order": 3 },
+    { "id": "racing",    "i18nKey": "category.racing",    "order": 4 },
+    { "id": "adventure", "i18nKey": "category.adventure", "order": 5 },
+    { "id": "sports",    "i18nKey": "category.sports",    "order": 6 },
+    { "id": "strategy",  "i18nKey": "category.strategy",  "order": 7 }
+  ],
+  "games": [
+    {
+      "id": "game-01-snake",
+      "title": "Neon Snake",
+      "description": "A modern, neon-styled twist on the classic snake game.",
+      "categories": ["arcade", "featured"],
+      "thumbnail": "/src/games/game-01-snake/thumb.svg",
+      "banner": "/src/games/game-01-snake/banner.svg",
+      "entry": "/src/games/game-01-snake/game.js",
+      "version": "1.0.0",
+      "controls": { "mobile": "dpad", "desktop": "keyboard" },
+      "tags": ["classic", "casual", "highscore"],
+      "orientation": "any",
+      "minRamMb": 256
+    },
+    {
+      "id": "game-02-blockjump",
+      "title": "Block Jump",
+      "description": "Endless platform runner with adaptive difficulty.",
+      "categories": ["action", "featured"],
+      "thumbnail": "/src/games/game-02-blockjump/thumb.svg",
+      "banner": "/src/games/game-02-blockjump/banner.svg",
+      "entry": "/src/games/game-02-blockjump/game.js",
+      "version": "1.0.0",
+      "controls": { "mobile": "buttons", "desktop": "keyboard" },
+      "tags": ["runner", "endless"],
+      "orientation": "any",
+      "minRamMb": 256
+    }
+  ]
+}
