@@ -1,0 +1,130 @@
+/* ============================================
+   Game Player — fullscreen overlay for in-game
+   ============================================ */
+
+.kc-play-root {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  display: flex;
+  flex-direction: column;
+  background: #07090f;
+  overflow: hidden;
+  /* Disable iOS rubber-banding on the player */
+  overscroll-behavior: contain;
+  touch-action: none;
+}
+
+.kc-play-root,
+.kc-play-root * {
+  box-sizing: border-box;
+}
+
+/* Game mounts its canvases inside this container */
+.kc-play-game {
+  position: relative;
+  flex: 1;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: #07090f;
+}
+
+/* Cinematic loading overlay that fades out when the game module is ready */
+.kc-play-loading {
+  position: absolute;
+  inset: 0;
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--s-4);
+  background:
+    radial-gradient(900px 500px at 50% 30%, rgba(108, 140, 255, 0.18), transparent 60%),
+    var(--c-bg-0);
+  color: var(--c-text);
+  text-align: center;
+  padding: var(--s-6);
+  transition: opacity 0.4s ease;
+}
+
+.kc-play-loading[data-fading="1"] {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.kc-play-loading__spinner {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  border: 3px solid rgba(255, 255, 255, 0.1);
+  border-top-color: var(--c-accent);
+  border-right-color: var(--c-accent-3);
+  animation: kc-play-spin 1s linear infinite;
+}
+
+@keyframes kc-play-spin {
+  to { transform: rotate(360deg); }
+}
+
+.kc-play-loading__title {
+  font-size: var(--fs-xl);
+  font-weight: 700;
+  margin: 0;
+  color: var(--c-text);
+}
+
+.kc-play-loading__sub {
+  font-size: var(--fs-sm);
+  color: var(--c-text-mute);
+  margin: 0;
+}
+
+.kc-play-loading__error {
+  color: var(--c-danger);
+  font-size: var(--fs-sm);
+  max-width: 32em;
+  margin: 0;
+}
+
+/* Floating Exit button (top-left, safe-area aware) */
+.kc-play-exit {
+  position: absolute;
+  top: calc(env(safe-area-inset-top, 0px) + 12px);
+  left: calc(env(safe-area-inset-left, 0px) + 12px);
+  z-index: 11;
+  padding: var(--s-2) var(--s-4);
+  font-size: var(--fs-sm);
+  background: rgba(15, 22, 38, 0.78);
+  color: var(--c-text);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: var(--r-pill);
+  font-weight: 600;
+  cursor: pointer;
+  backdrop-filter: blur(10px) saturate(120%);
+  -webkit-backdrop-filter: blur(10px) saturate(120%);
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s-1);
+  transition: background var(--t-fast), border-color var(--t-fast), transform var(--t-fast);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+}
+.kc-play-exit:hover {
+  background: rgba(20, 28, 50, 0.92);
+  border-color: rgba(255, 255, 255, 0.18);
+}
+.kc-play-exit:active {
+  transform: scale(0.97);
+}
+
+/* Error fallback (game not found) */
+.view--play-error {
+  text-align: center;
+  padding: var(--s-12);
+  color: var(--c-text-mute);
+}
+.view--play-error h1 {
+  color: var(--c-text);
+  margin-bottom: var(--s-3);
+}

@@ -1,0 +1,24 @@
+{
+  "id": "game-03-kipscity",
+  "name": "Kips City",
+  "version": "0.1.0",
+  "buildStage": "batch-3a",
+  "description": "An original cozy life-simulation game. Build your city, befriend your neighbors, live your story.",
+  "author": "Games Studio 2026",
+  "categories": ["adventure", "featured"],
+  "tags": ["life-sim", "sandbox", "cozy", "adventure", "simulation"],
+  "supportedLocales": ["en", "id", "ja", "ko", "zh"],
+  "fallbackLocale": "en",
+  "controls": {
+    "mobile": "touch",
+    "desktop": "mouse+keyboard",
+    "gamepad": false
+  },
+  "orientation": "any",
+  "minRamMb": 2048,
+  "minViewportPx": { "width": 320, "height": 240 },
+  "supportsOffline": true,
+  "savesProgress": true,
+  "rating": "Everyone",
+  "ageRating": 4
+}
