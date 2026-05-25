@@ -9,15 +9,14 @@
  * to begin the loop. On navigation away, it calls destroy() — every
  * subsystem must release its resources here for zero memory leaks.
  *
- * Batch 3a delivered:
- *   ✓ Multi-rate loop, 4-layer canvas, day/night, pan/zoom/pinch, HUD.
- *
- * Batch 3b–3c add:
- *   ✓ Tile pathfinder (A*) + room-graph for connectivity
- *   ✓ Procedural avatar atlas (zero PNG dependency)
- *   ✓ Player Kip with idle/walk animation state machine
- *   ✓ Tap-to-move with cinematic camera follow
- *   ✓ Entity renderer with depth sorting
+ * Batches delivered:
+ *   3a — Multi-rate loop, canvas stack, day/night, pan/zoom, HUD.
+ *   3b — A* pathfinder + room graph.
+ *   3c — Procedural avatar, player Kip, animation, tap-to-walk, camera follow.
+ *   3d — Needs (9-channel) + emotion + needs panel + mood ring overlay.
+ *   3e — Personality, utility AI, intent SM, 5 autonomous NPCs.
+ *   3f — Object affordances (bed, bench, fountain, food cart) + action wheel
+ *        + player-interaction system.
  */
 
 import { GameLoop } from './core/loop.js';
@@ -33,6 +32,7 @@ import { SpatialHash } from './ecs/spatial-hash.js';
 import { CanvasStack } from './rendering/canvas-stack.js';
 import { RenderPipeline } from './rendering/render-pipeline.js';
 import { AvatarCache } from './rendering/avatar-cache.js';
+import { ObjectAtlas } from './rendering/procedural-object.js';
 import { EntityRenderer } from './rendering/entity-renderer.js';
 
 import { Camera } from './world/camera.js';
@@ -41,12 +41,23 @@ import { Pathfinder } from './world/pathfinder.js';
 import { RoomGraph } from './world/room-graph.js';
 
 import { createPlayer } from './entities/player.js';
+import { createNPC } from './entities/npc.js';
+import { NPC_ROSTER } from './entities/npc-roster.js';
+import { spawnStarterObjects } from './entities/objects.js';
 
 import { InputSystem } from './systems/input-system.js';
 import { PathFollowSystem } from './systems/path-follow-system.js';
 import { AnimationSystem } from './systems/animation-system.js';
 
+import { NeedsSystem } from './simulation/needs-system.js';
+import { EmotionSystem, EMOTION_COLOR } from './simulation/emotion-system.js';
+import { AiDecisionSystem } from './simulation/ai-decision-system.js';
+import { IntentExecutionSystem } from './simulation/intent-execution-system.js';
+import { PlayerInteractionSystem } from './simulation/player-interaction-system.js';
+
 import { Hud, HelpBanner } from './ui/hud.js';
+import { NeedsPanel, MoodRing } from './ui/needs-panel.js';
+import { ActionWheel } from './ui/action-wheel.js';
 
 import { FpsMonitor } from './optimization/fps-monitor.js';
 import { QualityController } from './optimization/quality-tier.js';
@@ -58,22 +69,16 @@ import { tileCenter } from './utils/iso-math.js';
 import { lerp } from './utils/grid-math.js';
 import { C } from './components/types.js';
 
-const GAME_VERSION = '0.3.0-batch-3c';
+const GAME_VERSION = '0.6.0-batch-3f';
 const DEFAULT_SEED = 0xC1751EE;
 const PINCH_SENSITIVITY = 1.0;
 const WHEEL_ZOOM_FACTOR = 1.12;
+const CAMERA_FOLLOW_RATE = 6;
+const CAMERA_FREE_TIMEOUT_MS = 2000;
 
-// Camera-follow configuration
-const CAMERA_FOLLOW_RATE = 6;        // higher = snappier follow
-const CAMERA_FREE_TIMEOUT_MS = 2000; // user-pan disables follow for this long
-
-/**
- * Factory — called by the hub's play view.
- */
 export default function createKipsCity({ mount, params = {}, locale = 'en' } = {}) {
   if (!mount) throw new Error('Kips City: mount element required');
 
-  // ---------------- Service container & disposables ----------------
   const services = new ServiceLocator();
   const disposables = new Disposables();
   const bus = createGameBus();
@@ -82,7 +87,7 @@ export default function createKipsCity({ mount, params = {}, locale = 'en' } = {
   const stack = new CanvasStack(mount, 4);
   disposables.add(stack);
 
-  // ---------------- Core systems ----------------
+  // ---------------- Core ----------------
   const loop = new GameLoop();
   const time = new TimeSystem({ startHour: 7 });
   const world = new World();
@@ -92,13 +97,12 @@ export default function createKipsCity({ mount, params = {}, locale = 'en' } = {
   const quality = new QualityController();
   const visibility = new VisibilityHandler();
   const debug = new DebugOverlay();
-
   disposables.add(visibility);
   disposables.add(() => world.clear());
   disposables.add(() => spatial.clear());
   disposables.add(() => loop.stop());
 
-  // ---------------- World content ----------------
+  // ---------------- World ----------------
   const tilemap = buildStarterMap(rng);
   const roomGraph = new RoomGraph(tilemap);
   const pathfinder = new Pathfinder(tilemap, { roomGraph });
@@ -112,59 +116,163 @@ export default function createKipsCity({ mount, params = {}, locale = 'en' } = {
   const spawnPx = tileCenter(spawnTile.col, spawnTile.row);
   camera.snapTo(spawnPx.x, spawnPx.y, 1.2);
 
-  // ---------------- Avatar cache + player ----------------
+  // ---------------- Sprites ----------------
   const avatarCache = new AvatarCache();
+  const objectAtlas = new ObjectAtlas();
   disposables.add(avatarCache);
+  disposables.add(objectAtlas);
 
+  // ---------------- Entities ----------------
   const playerId = createPlayer(world, spawnTile, { avatarId: 'player' });
+
+  // NPCs
+  const npcIds = [];
+  for (const def of NPC_ROSTER) {
+    npcIds.push(createNPC(world, def));
+  }
+
+  // Interactable objects
+  const objectIds = spawnStarterObjects(world);
 
   // ---------------- Input ----------------
   const input = new InputRouter(stack.wrap);
   disposables.add(input);
 
-  // ---------------- Entity renderer + pipeline ----------------
-  const entityRenderer = new EntityRenderer({ avatarCache, world, camera });
+  // ---------------- Systems ----------------
+  const needsSys      = new NeedsSystem({ world, loop });
+  const emotionSys    = new EmotionSystem({ world });
+  const pathFollow    = new PathFollowSystem({ world });
+  const animation     = new AnimationSystem({ world });
+  const aiDecision    = new AiDecisionSystem({ world, pathfinder, tilemap });
+  const intentExec    = new IntentExecutionSystem({ world, pathfinder });
+  const playerInter   = new PlayerInteractionSystem({ world, pathfinder });
+
+  // ---------------- UI ----------------
+  const hud = new Hud();
+  hud.mount(stack.wrap);
+  disposables.add(hud);
+
+  const needsPanel = new NeedsPanel();
+  needsPanel.mount(stack.wrap);
+  disposables.add(needsPanel);
+
+  const moodRing = new MoodRing();
+  moodRing.mount(stack.wrap);
+  disposables.add(moodRing);
+
+  const actionWheel = new ActionWheel();
+  actionWheel.mount(stack.wrap);
+  disposables.add(actionWheel);
+
+  debug.mount(stack.wrap);
+  disposables.add(debug);
+
+  const help = new HelpBanner(
+    `<strong style="color:#fff">KIPS CITY · Batch 3d–3f</strong><br>
+     <span style="opacity:.85">Tap a tile to walk · Tap an object for actions · Watch the city live.<br>
+     Drag to pan · Pinch/wheel to zoom · F3 debug · 1/2/3 speed · 0 pause · F recenter</span>`
+  );
+  help.mount(stack.wrap);
+  disposables.add(help);
+
+  // ---------------- Input wiring ----------------
+  let lastUserPanAt = 0;
+
+  const inputSystem = new InputSystem({
+    world, input, camera, pathfinder, tilemap,
+    getPlayerId: () => playerId,
+    onObjectTap: ({ objectEntityId, screenX, screenY }) => {
+      const interactable = world.getComponent(objectEntityId, C.Interactable);
+      if (!interactable) return;
+      actionWheel.show({
+        affordanceIds: interactable.affordanceIds,
+        screenX, screenY,
+        objectEntityId,
+        onPick: (affordanceId, oid) => {
+          const ok = playerInter.apply(playerId, affordanceId, oid);
+          if (!ok) camera.shake(2);
+        },
+      });
+    },
+  });
+  disposables.add(inputSystem);
+
+  // Pan: user drag overrides camera follow
+  disposables.add(input.on('pan', (dx, dy) => {
+    camera.panBy(-dx, -dy);
+    lastUserPanAt = performance.now();
+  }));
+
+  disposables.add(input.on('wheel', (deltaY, x, y) => {
+    const factor = deltaY < 0 ? WHEEL_ZOOM_FACTOR : 1 / WHEEL_ZOOM_FACTOR;
+    camera.zoomBy(factor, x, y);
+  }));
+
+  disposables.add(input.on('pinch', (scale, x, y) => {
+    const attenuated = 1 + (scale - 1) * PINCH_SENSITIVITY;
+    camera.zoomBy(attenuated, x, y);
+  }));
+
+  disposables.add(input.on('keydown', (key) => {
+    switch (key) {
+      case '0': loop.setTimeScale(0); break;
+      case '1': loop.setTimeScale(1); break;
+      case '2': loop.setTimeScale(4); break;
+      case '3': loop.setTimeScale(16); break;
+      case '+': case '=':
+        camera.zoomBy(1.15, stack.cssW / 2, stack.cssH / 2); break;
+      case '-':
+        camera.zoomBy(1 / 1.15, stack.cssW / 2, stack.cssH / 2); break;
+      case 'f': case 'F': {
+        lastUserPanAt = 0;
+        const t = world.getComponent(playerId, C.Transform);
+        if (t) camera.snapTo(t.x, t.y, camera.targetZoom);
+        break;
+      }
+    }
+  }));
+
+  // ---------------- Render pipeline ----------------
+  const entityRenderer = new EntityRenderer({ avatarCache, objectAtlas, world, camera });
   const pipeline = new RenderPipeline({
     stack, camera, time, tilemap,
     entityRenderer,
-    getDestTile: () => inputSystem ? inputSystem.lastDest : null,
+    getDestTile: () => inputSystem.lastDest,
     isDebug: () => debug.visible,
   });
 
-  // Resize → camera viewport + tint repaint
   const offResize = stack.onResize((w, h) => {
     camera.setViewport(w, h);
     pipeline.invalidate();
   });
   disposables.add(offResize);
 
-  // ---------------- Game systems ----------------
-  const pathFollow = new PathFollowSystem({ world });
-  const animation = new AnimationSystem({ world });
-  const inputSystem = new InputSystem({
-    world, input, camera, pathfinder, tilemap,
-    getPlayerId: () => playerId,
-  });
-  disposables.add(inputSystem);
+  // ---------------- Time / phase events ----------------
+  disposables.add(time.on('phaseChange', (p) => {
+    bus.emit(KC_EVT.PHASE_CHANGE, p);
+    pipeline.invalidate();
+  }));
+  disposables.add(time.on('dayChange', (p) => bus.emit(KC_EVT.DAY_CHANGE, p)));
+  disposables.add(time.on('seasonChange', (p) => bus.emit(KC_EVT.SEASON_CHANGE, p)));
 
-  // ---------------- HUD ----------------
-  const hud = new Hud();
-  hud.mount(stack.wrap);
-  disposables.add(hud);
+  // ---------------- Visibility ----------------
+  disposables.add(visibility.onChange((hidden) => {
+    if (hidden) {
+      loop.pause();
+      bus.emit(KC_EVT.GAME_PAUSED, { reason: 'hidden' });
+    } else {
+      loop.resume();
+      bus.emit(KC_EVT.GAME_RESUMED, { reason: 'visible' });
+    }
+  }));
 
-  // ---------------- Debug overlay ----------------
-  debug.mount(stack.wrap);
-  disposables.add(debug);
+  // Quality changes invalidate the tint layer
+  disposables.add(quality.onChange((tier) => {
+    bus.emit(KC_EVT.QUALITY_CHANGE, { tier });
+    pipeline.invalidate();
+  }));
 
-  // ---------------- Help banner ----------------
-  const help = new HelpBanner(
-    `<strong style="color:#fff">KIPS CITY · Batch 3c</strong><br>
-     <span style="opacity:.85">Tap to walk · drag to pan · pinch/wheel to zoom · F3 debug · 1/2/3 speed · 0 pause</span>`
-  );
-  help.mount(stack.wrap);
-  disposables.add(help);
-
-  // ---------------- Service registration ----------------
+  // ---------------- Service registry ----------------
   services.register('loop', loop);
   services.register('time', time);
   services.register('world', world);
@@ -182,91 +290,38 @@ export default function createKipsCity({ mount, params = {}, locale = 'en' } = {
   services.register('fps', fpsMonitor);
   services.register('bus', bus);
   services.register('avatarCache', avatarCache);
+  services.register('objectAtlas', objectAtlas);
   services.register('playerId', playerId);
-
-  // ---------------- Camera follow logic ----------------
-  let lastUserPanAt = 0;
-
-  // Drag = user pan; disables follow temporarily
-  disposables.add(input.on('pan', (dx, dy) => {
-    camera.panBy(-dx, -dy);
-    lastUserPanAt = performance.now();
-  }));
-
-  disposables.add(input.on('wheel', (deltaY, x, y) => {
-    const factor = deltaY < 0 ? WHEEL_ZOOM_FACTOR : 1 / WHEEL_ZOOM_FACTOR;
-    camera.zoomBy(factor, x, y);
-  }));
-
-  disposables.add(input.on('pinch', (scale, x, y) => {
-    const attenuated = 1 + (scale - 1) * PINCH_SENSITIVITY;
-    camera.zoomBy(attenuated, x, y);
-  }));
-
-  // Time-speed shortcuts + camera quick zoom
-  disposables.add(input.on('keydown', (key) => {
-    switch (key) {
-      case '0': loop.setTimeScale(0); break;
-      case '1': loop.setTimeScale(1); break;
-      case '2': loop.setTimeScale(4); break;
-      case '3': loop.setTimeScale(16); break;
-      case '+': case '=':
-        camera.zoomBy(1.15, stack.cssW / 2, stack.cssH / 2); break;
-      case '-':
-        camera.zoomBy(1 / 1.15, stack.cssW / 2, stack.cssH / 2); break;
-      case 'f': case 'F':
-        // Snap camera to player (force-follow override)
-        lastUserPanAt = 0;
-        const t = world.getComponent(playerId, C.Transform);
-        if (t) camera.snapTo(t.x, t.y, camera.targetZoom);
-        break;
-    }
-  }));
-
-  // ---------------- Time event bridge ----------------
-  disposables.add(time.on('phaseChange', (p) => {
-    bus.emit(KC_EVT.PHASE_CHANGE, p);
-    pipeline.invalidate();
-  }));
-  disposables.add(time.on('dayChange', (p) => bus.emit(KC_EVT.DAY_CHANGE, p)));
-  disposables.add(time.on('seasonChange', (p) => bus.emit(KC_EVT.SEASON_CHANGE, p)));
-
-  // ---------------- Visibility handling ----------------
-  disposables.add(visibility.onChange((hidden) => {
-    if (hidden) {
-      loop.pause();
-      bus.emit(KC_EVT.GAME_PAUSED, { reason: 'hidden' });
-    } else {
-      loop.resume();
-      bus.emit(KC_EVT.GAME_RESUMED, { reason: 'visible' });
-    }
-  }));
-
-  // ---------------- Quality change → invalidate layers ----------------
-  disposables.add(quality.onChange((tier) => {
-    bus.emit(KC_EVT.QUALITY_CHANGE, { tier });
-    pipeline.invalidate();
-  }));
+  services.register('npcIds', npcIds);
 
   // ---------------- Loop tracks ----------------
-  // 30 Hz: motion + path follow + animation
+  // 30 Hz: motion + animation + spatial-hash refresh + intent execution
   loop.addFixedTrack('movement', 30, (dt) => {
-    pathFollow.update(dt);
-    animation.update(dt);
+    intentExec.update(dt);     // travel/execute SM
+    pathFollow.update(dt);     // physically move along path
+    animation.update(dt);      // idle/walk frames
 
-    // Update spatial hash for the player so future systems (NPCs, social,
-    // interaction) can run radius queries cheaply.
-    const t = world.getComponent(playerId, C.Transform);
-    if (t) spatial.set(playerId, t.x, t.y);
+    // Refresh spatial hash for ALL Kips (player + NPCs) so AI proximity
+    // queries are up to date.
+    for (const e of world.query([C.Transform, C.Animator])) {
+      const sprite = world.getComponent(e.id, C.Sprite);
+      if (sprite && sprite.kind === 'object') continue;
+      spatial.set(e.id, e[C.Transform].x, e[C.Transform].y);
+    }
   });
 
-  // 4 Hz: AI utility re-evaluation — empty for 3c
-  loop.addFixedTrack('ai', 4, (_dt) => { /* batch 3e+ */ });
+  // 4 Hz: AI decision-making
+  loop.addFixedTrack('ai', 4, (dt) => {
+    aiDecision.update(dt);
+  });
 
-  // 1 Hz: needs decay — empty for 3c
-  loop.addFixedTrack('needs', 1, (_dt) => { /* batch 3d+ */ });
+  // 1 Hz: needs decay + emotion update
+  loop.addFixedTrack('needs', 1, (dt) => {
+    needsSys.update(dt);
+    emotionSys.update(dt);
+  });
 
-  // 0.1 Hz: weather, slow ambient changes
+  // 0.1 Hz: weather etc — empty for now
   loop.addFixedTrack('weather', 0.1, (_dt) => { /* batch 3j */ });
 
   // ECS sweep
@@ -274,32 +329,43 @@ export default function createKipsCity({ mount, params = {}, locale = 'en' } = {
 
   // ---------------- Render callback ----------------
   loop.setRenderCallback((dtReal) => {
-    // Time advances during render so the clock keeps moving
     time.update(dtReal * loop.timeScale);
 
-    // Camera follow: smoothly track player unless the user is panning
-    const t = world.getComponent(playerId, C.Transform);
-    if (t) {
+    // Camera follow
+    const playerT = world.getComponent(playerId, C.Transform);
+    if (playerT) {
       const sinceUserPan = performance.now() - lastUserPanAt;
       if (sinceUserPan > CAMERA_FREE_TIMEOUT_MS) {
-        // Lerp camera target toward player position
         const k = 1 - Math.exp(-CAMERA_FOLLOW_RATE * dtReal);
-        camera.targetX = lerp(camera.targetX, t.x, k);
-        camera.targetY = lerp(camera.targetY, t.y, k);
+        camera.targetX = lerp(camera.targetX, playerT.x, k);
+        camera.targetY = lerp(camera.targetY, playerT.y, k);
       }
     }
 
     camera.update(dtReal);
-
-    // FPS bookkeeping → adaptive quality
     fpsMonitor.tick();
     quality.evaluate(fpsMonitor.fps, dtReal);
-
-    // Render
     pipeline.render();
 
-    // HUD
+    // HUD refresh
     hud.update(time);
+
+    // Needs panel (player only)
+    const playerNeeds = world.getComponent(playerId, C.Needs);
+    if (playerNeeds) needsPanel.update(playerNeeds);
+
+    // Mood ring (positioned above player avatar)
+    if (playerT) {
+      const playerEmotion = world.getComponent(playerId, C.Emotion);
+      if (playerEmotion) {
+        const screenPos = camera.worldToScreen(playerT.x, playerT.y - 64);
+        moodRing.update(
+          screenPos.x, screenPos.y,
+          playerEmotion.state, playerEmotion.intensity,
+          EMOTION_COLOR[playerEmotion.state] || '#fff'
+        );
+      }
+    }
 
     // Debug overlay
     if (debug.visible) {
@@ -312,18 +378,21 @@ export default function createKipsCity({ mount, params = {}, locale = 'en' } = {
       debug.set('Day',      `${time.day}  (${time.season} · Y${time.year})`);
       debug.set('Camera',   `(${Math.round(camera.x)}, ${Math.round(camera.y)})  z=${camera.zoom.toFixed(2)}`);
       debug.set('Map',      `${tilemap.cols}×${tilemap.rows}  (${roomGraph.regionCount} regions)`);
-      debug.set('Entities', String(world.count()));
-      const player = world.getComponent(playerId, C.Transform);
-      if (player) {
-        debug.set('Player',   `(${Math.round(player.x)}, ${Math.round(player.y)})  ${player.facing}`);
+      debug.set('Entities', `${world.count()} (player + ${npcIds.length} NPC + ${objectIds.length} obj)`);
+      if (playerT) {
+        debug.set('Player', `(${Math.round(playerT.x)}, ${Math.round(playerT.y)})  ${playerT.facing}`);
       }
-      const pComp = world.getComponent(playerId, C.Path);
-      if (pComp && pComp.waypoints) {
-        debug.set('Path',     `${pComp.index}/${pComp.waypoints.length} waypoints`);
-      } else {
-        debug.set('Path',     '—');
+      const em = world.getComponent(playerId, C.Emotion);
+      if (em) {
+        debug.set('Emotion', `${em.state}  i=${em.intensity.toFixed(2)}`);
       }
-      debug.set('Frames',   String(loop.frameCount));
+      // Quick AI snapshot — first NPC's intent
+      if (npcIds.length > 0) {
+        const i = world.getComponent(npcIds[0], C.Intent);
+        if (i) {
+          debug.set(`AI[${NPC_ROSTER[0].name}]`, `${i.actionId || 'idle'} · ${i.phase}`);
+        }
+      }
       debug.render();
     }
   });
@@ -340,25 +409,21 @@ export default function createKipsCity({ mount, params = {}, locale = 'en' } = {
       started = true;
       loop.start();
     },
-
     pause() {
       if (destroyed) return;
       loop.pause();
       bus.emit(KC_EVT.GAME_PAUSED, { reason: 'manual' });
     },
-
     resume() {
       if (destroyed || !started) return;
       loop.resume();
       bus.emit(KC_EVT.GAME_RESUMED, { reason: 'manual' });
     },
-
     stop() {
       if (destroyed) return;
       loop.pause();
       started = false;
     },
-
     async destroy() {
       if (destroyed) return;
       destroyed = true;
@@ -367,7 +432,6 @@ export default function createKipsCity({ mount, params = {}, locale = 'en' } = {
       await disposables.dispose();
       services.clear();
     },
-
     get version() { return GAME_VERSION; },
     get services() { return services; },
   };
