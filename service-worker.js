@@ -1,5 +1,5 @@
 /**
- * Service Worker — Games Studio 2026
+ * Service Worker — Kips Game Studio (KIPS TECHNOLOGY)
  * Strategies:
  *   - App shell (HTML/CSS/JS/icons)  -> cache-first (precache)
  *   - games.json (catalog registry)  -> network-first, fallback cache
@@ -9,7 +9,7 @@
  * Versioning: bump SW_VERSION to invalidate old caches on deploy.
  */
 
-const SW_VERSION = 'v1.3.0';
+const SW_VERSION = 'v1.4.0';
 const SHELL_CACHE  = `gs2026-shell-${SW_VERSION}`;
 const RUNTIME_CACHE = `gs2026-runtime-${SW_VERSION}`;
 const GAMES_CACHE   = `gs2026-games-${SW_VERSION}`;

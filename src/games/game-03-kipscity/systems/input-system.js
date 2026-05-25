@@ -1,11 +1,11 @@
 /**
- * Input System — translates user taps into either:
- *   (a) a tile pathfind request (tap on empty walkable tile)
- *   (b) an action wheel open (tap on an interactable object)
+ * Input System — mode-aware tap dispatcher.
  *
- * Hit-testing for objects: pick the object whose footprint overlaps the
- * tapped world point. We use a generous radius so it works on touch with
- * sausage fingers.
+ * Supports four modes (set externally via setMode):
+ *   - 'play'          (default) tap object → onObjectTap; tap tile → walk + onTileTap
+ *   - 'build-place'   tap tile → onTileTap (placement); object taps fall through
+ *   - 'build-select'  tap object → onObjectTap (delete); tile taps ignored
+ *   - 'disabled'      ignores all taps
  */
 
 import { C } from '../components/types.js';
@@ -14,18 +14,16 @@ import { entityTile } from '../entities/player.js';
 
 const OBJECT_HIT_RADIUS = 36; // world-px around object center
 
+export const INPUT_MODE = Object.freeze({
+  PLAY:         'play',
+  BUILD_PLACE:  'build-place',
+  BUILD_SELECT: 'build-select',
+  DISABLED:     'disabled',
+});
+
 export class InputSystem {
-  /**
-   * @param {object} deps
-   * @param {import('../ecs/world.js').World} deps.world
-   * @param {import('../utils/input-router.js').InputRouter} deps.input
-   * @param {import('../world/camera.js').Camera} deps.camera
-   * @param {import('../world/pathfinder.js').Pathfinder} deps.pathfinder
-   * @param {import('../world/tilemap.js').Tilemap} deps.tilemap
-   * @param {() => number} deps.getPlayerId
-   * @param {(payload:{objectEntityId:number, screenX:number, screenY:number}) => void} [deps.onObjectTap]
-   */
-  constructor({ world, input, camera, pathfinder, tilemap, getPlayerId, onObjectTap }) {
+  constructor({ world, input, camera, pathfinder, tilemap,
+                getPlayerId, onObjectTap, onTileTap }) {
     this.world = world;
     this.input = input;
     this.camera = camera;
@@ -33,41 +31,57 @@ export class InputSystem {
     this.tilemap = tilemap;
     this.getPlayerId = getPlayerId;
     this.onObjectTap = onObjectTap || null;
+    this.onTileTap = onTileTap || null;
 
-    /** Last tap destination tile — for HUD/debug rendering. */
+    this.mode = INPUT_MODE.PLAY;
     this.lastDest = null;
 
     this._offTap = input.on('tap', (sx, sy) => this._onTap(sx, sy));
   }
 
+  setMode(mode) {
+    this.mode = mode;
+  }
+
   _onTap(screenX, screenY) {
+    if (this.mode === INPUT_MODE.DISABLED) return;
     const playerId = this.getPlayerId();
     if (!playerId) return;
 
-    // Convert screen → world
+    // Screen → world
     const wx = (screenX - this.camera.viewportW / 2) / this.camera.zoom + this.camera.x;
     const wy = (screenY - this.camera.viewportH / 2) / this.camera.zoom + this.camera.y;
 
-    // 1. Object hit-test first — tapping an object opens the action wheel
+    // Object hit-test
     const obj = this._objectAt(wx, wy);
-    if (obj) {
-      if (this.onObjectTap) this.onObjectTap({ objectEntityId: obj.id, screenX, screenY });
+    if (obj && this.mode !== INPUT_MODE.BUILD_PLACE) {
+      if (this.onObjectTap) {
+        this.onObjectTap({ objectEntityId: obj.id, screenX, screenY });
+      }
       return;
     }
 
-    // 2. Otherwise: tile pathfind (ground tap → walk there)
+    // In build-select, ignore tile taps
+    if (this.mode === INPUT_MODE.BUILD_SELECT) return;
+
+    // Tile tap
     const tile = screenToTile(wx, wy - 16);
     const goalCol = Math.round(tile.col);
     const goalRow = Math.round(tile.row);
 
+    // Build-place: hand off to onTileTap, do not walk
+    if (this.mode === INPUT_MODE.BUILD_PLACE) {
+      if (this.onTileTap) this.onTileTap({ col: goalCol, row: goalRow, screenX, screenY });
+      return;
+    }
+
+    // Default play mode: walk there
     if (!this.pathfinder.isWalkable(goalCol, goalRow)) {
       this.camera.shake(2);
       return;
     }
-
     const startTile = entityTile(this.world, playerId);
     if (!startTile) return;
-
     const path = this.world.getComponent(playerId, C.Path);
     if (!path) return;
 
@@ -78,7 +92,6 @@ export class InputSystem {
       this.camera.shake(3);
       return;
     }
-
     path.waypoints = waypoints;
     path.index = 0;
     this.lastDest = { col: goalCol, row: goalRow };
@@ -90,6 +103,8 @@ export class InputSystem {
       intent.actionId = null;
       intent.target = null;
     }
+
+    if (this.onTileTap) this.onTileTap({ col: goalCol, row: goalRow, screenX, screenY });
   }
 
   _objectAt(wx, wy) {

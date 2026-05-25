@@ -1,7 +1,7 @@
 {
   "meta": {
-    "appName": "Games Studio 2026",
-    "tagline": "Premium HTML5 Game Portal"
+    "appName": "Kips Game Studio",
+    "tagline": "Premium HTML5 Game Portal by KIPS TECHNOLOGY"
   },
   "common": {
     "loading": "Loading…",
@@ -63,7 +63,7 @@
     "version": "Version"
   },
   "footer": {
-    "studio": "GAMES STUDIO 2026",
+    "studio": "KIPS TECHNOLOGY",
     "rights": "All rights reserved.",
     "privacy": "Privacy Policy",
     "terms": "Terms of Service",

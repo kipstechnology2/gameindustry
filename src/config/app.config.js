@@ -5,10 +5,11 @@
  */
 export const APP_CONFIG = Object.freeze({
   studio: {
-    name: 'Games Studio 2026',
-    short: 'Games Studio',
+    name: 'Kips Game Studio',
+    short: 'Kips Studio',
+    company: 'KIPS TECHNOLOGY',
     year: 2026,
-    contactEmail: 'support@gamesstudio2026.com'
+    contactEmail: 'support@kipstechnology.com'
   },
   routes: {
     home: '/',

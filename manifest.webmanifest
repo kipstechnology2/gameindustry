@@ -1,7 +1,7 @@
 {
-  "name": "Games Studio 2026",
-  "short_name": "Games Studio",
-  "description": "Premium HTML5 game portal — play online and offline.",
+  "name": "Kips Game Studio",
+  "short_name": "Kips Studio",
+  "description": "Premium HTML5 game portal by KIPS TECHNOLOGY — play online and offline.",
   "start_url": "/?utm_source=pwa",
   "scope": "/",
   "display": "standalone",

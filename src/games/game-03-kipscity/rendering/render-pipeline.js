@@ -2,14 +2,15 @@
  * Render Pipeline — orchestrates per-frame drawing across the canvas stack.
  *
  * Layers:
- *   0 (world)   — sky background + tilemap + path debug (in world-space)
- *   1 (entities)— Kips, NPCs, ambient life (depth-sorted)
- *   2 (world UI)— mood rings, speech bubbles (Batch 3e+)
+ *   0 (world)   — sky background + tilemap + path debug + build-mode overlay
+ *   1 (entities)— Kips, NPCs, ambient life, depth-sorted
+ *   2 (world UI)— particles, ambient life (butterflies), placement preview
  *   3 (tint)    — day/night color overlay
  *
  * Strategy:
  *   - World layer: full clear + redraw of visible tiles.
  *   - Entity layer: cleared every frame; entity-renderer blits sprites.
+ *   - World UI layer: cleared every frame; particles + ambient life.
  *   - Tint layer: dirty-flag, only repainted when the tint string changed.
  */
 
@@ -24,15 +25,22 @@ export class RenderPipeline {
    * @param {import('../core/time.js').TimeSystem} deps.time
    * @param {import('../world/tilemap.js').Tilemap} deps.tilemap
    * @param {import('./entity-renderer.js').EntityRenderer} [deps.entityRenderer]
-   * @param {() => ({col:number,row:number}|null)} [deps.getDestTile]  optional path-debug source
-   * @param {() => boolean} [deps.isDebug]                              show debug helpers
+   * @param {import('../effects/particle-system.js').ParticleSystem} [deps.particles]
+   * @param {import('../effects/ambient-life.js').AmbientLife} [deps.ambientLife]
+   * @param {import('../building/build-mode.js').BuildMode} [deps.buildMode]
+   * @param {() => ({col:number,row:number}|null)} [deps.getDestTile]
+   * @param {() => boolean} [deps.isDebug]
    */
-  constructor({ stack, camera, time, tilemap, entityRenderer, getDestTile, isDebug }) {
+  constructor({ stack, camera, time, tilemap, entityRenderer, particles,
+                ambientLife, buildMode, getDestTile, isDebug }) {
     this.stack = stack;
     this.camera = camera;
     this.time = time;
     this.tilemap = tilemap;
     this.entityRenderer = entityRenderer || null;
+    this.particles = particles || null;
+    this.ambientLife = ambientLife || null;
+    this.buildMode = buildMode || null;
     this.getDestTile = getDestTile || (() => null);
     this.isDebug = isDebug || (() => false);
 
@@ -52,19 +60,18 @@ export class RenderPipeline {
     if (!world) return;
     const wctx = world.ctx;
 
-    // Sky (paint as opaque fill)
+    // Sky
     const sky = skyColor(time);
     wctx.fillStyle = sky;
     wctx.fillRect(0, 0, cssW, cssH);
 
-    // Apply camera transform
+    // Camera transform
     wctx.save();
     wctx.translate(cssW / 2, cssH / 2);
     wctx.scale(camera.zoom, camera.zoom);
     const shake = camera.getRenderOffset();
     wctx.translate(-camera.x + shake.x, -camera.y + shake.y);
 
-    // Visible bounds (world-space)
     const halfW = cssW / 2 / camera.zoom;
     const halfH = cssH / 2 / camera.zoom;
     const viewBounds = {
@@ -76,12 +83,21 @@ export class RenderPipeline {
 
     drawTilemap(wctx, tilemap, viewBounds, time);
 
-    // Path-debug highlight when debug overlay is on
+    // Path debug
     if (this.isDebug()) {
       const dest = this.getDestTile();
       if (dest && tilemap.inBounds(dest.col, dest.row)) {
         highlightTile(wctx, dest.col, dest.row, 'rgba(108, 140, 255, 0.45)');
       }
+    }
+
+    // Build mode hover overlay
+    if (this.buildMode && this.buildMode.isActive() && this.buildMode.hoverTile) {
+      const t = this.buildMode.hoverTile;
+      const color = this.buildMode.hoverValid
+        ? 'rgba(155, 214, 111, 0.45)'
+        : 'rgba(255, 84, 112, 0.45)';
+      highlightTile(wctx, t.col, t.row, color);
     }
 
     wctx.restore();
@@ -101,11 +117,21 @@ export class RenderPipeline {
       }
     }
 
-    // ---- Layer 2: world UI (placeholder — batch 3e) ----
+    // ---- Layer 2: world UI / particles / ambient ----
     const wui = stack.layer(2);
-    if (wui) wui.ctx.clearRect(0, 0, cssW, cssH);
+    if (wui) {
+      const uctx = wui.ctx;
+      uctx.clearRect(0, 0, cssW, cssH);
+      uctx.save();
+      uctx.translate(cssW / 2, cssH / 2);
+      uctx.scale(camera.zoom, camera.zoom);
+      uctx.translate(-camera.x + shake.x, -camera.y + shake.y);
+      if (this.particles) this.particles.render(uctx);
+      if (this.ambientLife) this.ambientLife.render(uctx);
+      uctx.restore();
+    }
 
-    // ---- Layer 3: day/night tint (only when changed) ----
+    // ---- Layer 3: day/night tint ----
     const tint = tintOverlay(time);
     if (tint !== this._lastTint) {
       this._lastTint = tint;
@@ -124,7 +150,6 @@ export class RenderPipeline {
     }
   }
 
-  /** Force tint layer repaint (e.g. after canvas resize). */
   invalidate() {
     this._tintDirty = true;
   }
