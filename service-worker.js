@@ -9,7 +9,7 @@
  * Versioning: bump SW_VERSION to invalidate old caches on deploy.
  */
 
-const SW_VERSION = 'v1.1.0';
+const SW_VERSION = 'v1.2.0';
 const SHELL_CACHE  = `gs2026-shell-${SW_VERSION}`;
 const RUNTIME_CACHE = `gs2026-runtime-${SW_VERSION}`;
 const GAMES_CACHE   = `gs2026-games-${SW_VERSION}`;
