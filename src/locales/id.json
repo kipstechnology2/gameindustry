@@ -1,0 +1,82 @@
+{
+  "meta": {
+    "appName": "Games Studio 2026",
+    "tagline": "Portal Game HTML5 Premium"
+  },
+  "common": {
+    "loading": "Memuat…",
+    "play": "Main",
+    "playNow": "Main Sekarang",
+    "pause": "Jeda",
+    "resume": "Lanjut",
+    "restart": "Ulang",
+    "exit": "Keluar",
+    "back": "Kembali",
+    "soundOn": "Suara Aktif",
+    "soundOff": "Suara Mati",
+    "settings": "Pengaturan",
+    "language": "Bahasa",
+    "highscore": "Skor Tertinggi",
+    "score": "Skor",
+    "level": "Level",
+    "coins": "Koin",
+    "close": "Tutup",
+    "ok": "OK",
+    "retry": "Coba Lagi"
+  },
+  "nav": {
+    "home": "Beranda",
+    "library": "Pustaka",
+    "settings": "Pengaturan",
+    "about": "Tentang"
+  },
+  "home": {
+    "title": "Game HTML5 Premium",
+    "subtitle": "Main langsung. Tanpa unduh. Bisa offline."
+  },
+  "category": {
+    "featured": "Pilihan",
+    "action": "Aksi",
+    "arcade": "Arkade",
+    "puzzle": "Teka-teki",
+    "racing": "Balapan",
+    "adventure": "Petualangan",
+    "sports": "Olahraga",
+    "strategy": "Strategi"
+  },
+  "detail": {
+    "controls": "Kontrol",
+    "tags": "Tag",
+    "category": "Kategori",
+    "description": "Tentang game ini"
+  },
+  "pause": {
+    "title": "Dijeda",
+    "exitConfirm": "Keluar ke menu?"
+  },
+  "settings": {
+    "audio": "Audio",
+    "graphics": "Grafis",
+    "language": "Bahasa",
+    "data": "Data",
+    "clearCache": "Bersihkan cache",
+    "version": "Versi"
+  },
+  "footer": {
+    "studio": "GAMES STUDIO 2026",
+    "rights": "Hak cipta dilindungi.",
+    "privacy": "Kebijakan Privasi",
+    "terms": "Ketentuan Layanan",
+    "contact": "Kontak"
+  },
+  "error": {
+    "loadCatalog": "Tidak dapat memuat katalog. Silakan coba lagi.",
+    "loadGame": "Tidak dapat memuat game ini.",
+    "offline": "Anda offline. Menampilkan konten tersimpan."
+  },
+  "a11y": {
+    "skipToContent": "Lewati ke konten",
+    "openMenu": "Buka menu",
+    "closeMenu": "Tutup menu"
+  }
+}

@@ -1,0 +1,30 @@
+/* Legal pages — sober, readable */
+.legal {
+  max-width: 820px;
+  margin: 0 auto;
+  padding: clamp(2rem, 6vw, 4rem) var(--pad-page);
+}
+.legal h1 {
+  font-size: var(--fs-3xl);
+  margin: 0 0 var(--s-2);
+  background: var(--g-brand);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+.legal__updated { color: var(--c-text-dim); font-size: var(--fs-sm); margin: 0 0 var(--s-8); }
+.legal h2 {
+  font-size: var(--fs-xl);
+  margin: var(--s-8) 0 var(--s-3);
+  border-top: 1px solid var(--c-border);
+  padding-top: var(--s-5);
+}
+.legal p, .legal li { color: var(--c-text-mute); line-height: 1.7; }
+.legal a { color: var(--c-accent-3); }
+.legal ul { padding-left: 1.2rem; list-style: disc; margin: var(--s-3) 0; }
+.legal__back {
+  display: inline-flex; align-items: center; gap: var(--s-2);
+  color: var(--c-text-mute); margin-bottom: var(--s-4);
+}
+.legal__back:hover { color: var(--c-text); }
+.legal-footer { text-align: center; color: var(--c-text-dim); font-size: var(--fs-sm); padding: var(--s-8) 0; border-top: 1px solid var(--c-border); margin-top: var(--s-12); }

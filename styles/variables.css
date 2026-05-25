@@ -1,0 +1,112 @@
+/* ============================================
+   Design Tokens — Games Studio 2026
+   Mobile-first, premium dark theme
+   ============================================ */
+
+:root {
+  /* Color palette — deep space / neon accent */
+  --c-bg-0:        #07090f;
+  --c-bg-1:        #0b0f1a;
+  --c-bg-2:        #121828;
+  --c-bg-3:        #1a2336;
+  --c-surface:     rgba(255, 255, 255, 0.04);
+  --c-surface-2:   rgba(255, 255, 255, 0.08);
+  --c-border:      rgba(255, 255, 255, 0.08);
+  --c-border-2:    rgba(255, 255, 255, 0.16);
+
+  --c-text:        #e9edf5;
+  --c-text-mute:   #9aa3b8;
+  --c-text-dim:    #6b7388;
+
+  --c-accent:      #6c8cff;     /* primary neon-blue */
+  --c-accent-2:    #b06bff;     /* purple accent */
+  --c-accent-3:    #00d4ff;     /* cyan accent */
+  --c-success:     #2cd56b;
+  --c-warning:     #ffb84d;
+  --c-danger:      #ff5470;
+
+  /* Gradients */
+  --g-brand:       linear-gradient(135deg, var(--c-accent), var(--c-accent-2));
+  --g-card:        linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.02));
+  --g-radial-hero: radial-gradient(1200px 600px at 20% -10%, rgba(108,140,255,0.25), transparent 60%),
+                   radial-gradient(900px 500px at 100% 0%, rgba(176,107,255,0.18), transparent 60%);
+
+  /* Typography */
+  --ff-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial,
+             "Noto Sans", "Apple Color Emoji", "Segoe UI Emoji", sans-serif;
+  --ff-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+
+  --fs-xs:   0.75rem;
+  --fs-sm:   0.875rem;
+  --fs-md:   1rem;
+  --fs-lg:   1.125rem;
+  --fs-xl:   1.375rem;
+  --fs-2xl:  1.75rem;
+  --fs-3xl:  2.25rem;
+  --fs-hero: clamp(2rem, 4vw + 1rem, 3.5rem);
+
+  /* Spacing scale (4px base) */
+  --s-1: 0.25rem;
+  --s-2: 0.5rem;
+  --s-3: 0.75rem;
+  --s-4: 1rem;
+  --s-5: 1.25rem;
+  --s-6: 1.5rem;
+  --s-8: 2rem;
+  --s-10: 2.5rem;
+  --s-12: 3rem;
+  --s-16: 4rem;
+
+  /* Radius */
+  --r-sm: 6px;
+  --r-md: 12px;
+  --r-lg: 20px;
+  --r-xl: 28px;
+  --r-pill: 999px;
+
+  /* Shadows (premium, soft, layered) */
+  --sh-sm:  0 1px 2px rgba(0,0,0,0.3);
+  --sh-md:  0 6px 24px rgba(0,0,0,0.35);
+  --sh-lg:  0 18px 60px rgba(0,0,0,0.45);
+  --sh-glow: 0 0 0 1px rgba(108,140,255,0.4), 0 12px 40px rgba(108,140,255,0.25);
+
+  /* Motion */
+  --t-fast:  120ms;
+  --t-base:  220ms;
+  --t-slow:  420ms;
+  --ease-out:    cubic-bezier(0.2, 0.7, 0.2, 1);
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+
+  /* Z-index */
+  --z-base:    1;
+  --z-nav:    100;
+  --z-overlay:500;
+  --z-modal:  900;
+  --z-toast: 1000;
+
+  /* Layout */
+  --nav-h: 64px;
+  --max-w: 1400px;
+  --pad-page: clamp(1rem, 4vw, 2rem);
+
+  /* Safe-area for iOS notch / Android edge */
+  --safe-top:    env(safe-area-inset-top, 0);
+  --safe-right:  env(safe-area-inset-right, 0);
+  --safe-bottom: env(safe-area-inset-bottom, 0);
+  --safe-left:   env(safe-area-inset-left, 0);
+}
+
+/* Optional light theme */
+[data-theme="light"] {
+  --c-bg-0: #f6f7fb;
+  --c-bg-1: #ffffff;
+  --c-bg-2: #f0f2f8;
+  --c-bg-3: #e6eaf3;
+  --c-text: #0e1426;
+  --c-text-mute: #4a5470;
+  --c-text-dim: #7882a0;
+  --c-border: rgba(0,0,0,0.08);
+  --c-border-2: rgba(0,0,0,0.16);
+  --c-surface: rgba(0,0,0,0.04);
+  --c-surface-2: rgba(0,0,0,0.06);
+}

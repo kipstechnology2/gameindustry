@@ -1,0 +1,59 @@
+/* ============================================
+   Animation library — cinematic transitions
+   Used by views, ripple, splash, catalog, etc.
+   ============================================ */
+
+@keyframes fadeUp {
+  from { opacity: 0; transform: translate3d(0, 12px, 0); }
+  to   { opacity: 1; transform: translate3d(0, 0, 0); }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@keyframes scaleIn {
+  from { opacity: 0; transform: scale(0.96); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
+@keyframes slideInRight {
+  from { opacity: 0; transform: translate3d(24px, 0, 0); }
+  to   { opacity: 1; transform: translate3d(0, 0, 0); }
+}
+
+@keyframes pulseGlow {
+  0%, 100% { box-shadow: 0 0 0 1px rgba(108,140,255,0.4), 0 12px 40px rgba(108,140,255,0.25); }
+  50%      { box-shadow: 0 0 0 1px rgba(108,140,255,0.7), 0 18px 60px rgba(108,140,255,0.45); }
+}
+
+@keyframes boot-slide {
+  0%   { transform: translateX(-100%); }
+  100% { transform: translateX(300%); }
+}
+
+/* Ripple click — wired up in Batch 2 (ui/ripple.js) */
+@keyframes ripple {
+  to { transform: scale(2.4); opacity: 0; }
+}
+.ripple {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+}
+.ripple > .ripple__wave {
+  position: absolute;
+  border-radius: 50%;
+  pointer-events: none;
+  background: rgba(255, 255, 255, 0.35);
+  transform: scale(0);
+  animation: ripple 600ms var(--ease-out) forwards;
+  z-index: 0;
+}
+
+/* Page-level transition helpers */
+.t-fade-up   { animation: fadeUp   var(--t-slow) var(--ease-out) both; }
+.t-fade-in   { animation: fadeIn   var(--t-base) var(--ease-out) both; }
+.t-scale-in  { animation: scaleIn  var(--t-base) var(--ease-spring) both; }
+.t-slide-in  { animation: slideInRight var(--t-base) var(--ease-out) both; }

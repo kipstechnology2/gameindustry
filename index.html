@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no" />
+
+  <!-- Primary SEO -->
+  <title>Games Studio 2026 — Premium HTML5 Game Portal</title>
+  <meta name="description" content="Play premium HTML5 games online and offline. Action, Puzzle, Arcade, Racing — all in one premium hub. Mobile and desktop ready." />
+  <meta name="keywords" content="html5 games, online games, offline games, arcade, puzzle, action, racing, game portal, pwa games" />
+  <meta name="author" content="Games Studio 2026" />
+  <meta name="robots" content="index, follow" />
+  <meta name="theme-color" content="#0b0f1a" />
+  <meta name="color-scheme" content="dark light" />
+  <link rel="canonical" href="/" />
+
+  <!-- Open Graph -->
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content="Games Studio 2026 — Premium HTML5 Game Portal" />
+  <meta property="og:description" content="Play premium HTML5 games online and offline." />
+  <meta property="og:image" content="/assets/icons/og-banner.png" />
+  <meta property="og:site_name" content="Games Studio 2026" />
+
+  <!-- Twitter -->
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Games Studio 2026" />
+  <meta name="twitter:description" content="Premium HTML5 Game Portal" />
+  <meta name="twitter:image" content="/assets/icons/og-banner.png" />
+
+  <!-- iOS / Mobile App -->
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="Games Studio" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="format-detection" content="telephone=no" />
+
+  <!-- PWA -->
+  <link rel="manifest" href="/manifest.webmanifest" />
+  <link rel="icon" type="image/png" sizes="32x32" href="/assets/icons/icon-32.png" />
+  <link rel="icon" type="image/png" sizes="192x192" href="/assets/icons/icon-192.png" />
+  <link rel="apple-touch-icon" href="/assets/icons/icon-180.png" />
+
+  <!-- Performance hints -->
+  <link rel="preload" href="/styles/variables.css" as="style" />
+  <link rel="preload" href="/styles/layout.css" as="style" />
+  <link rel="preload" href="/src/main.js" as="script" />
+
+  <!-- Stylesheets (load order matters: tokens -> reset -> layout -> features) -->
+  <link rel="stylesheet" href="/styles/variables.css" />
+  <link rel="stylesheet" href="/styles/reset.css" />
+  <link rel="stylesheet" href="/styles/layout.css" />
+  <link rel="stylesheet" href="/styles/catalog.css" />
+  <link rel="stylesheet" href="/styles/animations.css" />
+
+  <!-- AdSense placeholder (replace data-ad-client when going live) -->
+  <!-- <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-XXXXXXXXXXXXXXXX" crossorigin="anonymous"></script> -->
+
+  <!-- Structured data -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "WebApplication",
+    "name": "Games Studio 2026",
+    "applicationCategory": "GameApplication",
+    "operatingSystem": "Web, Android, iOS",
+    "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" }
+  }
+  </script>
+</head>
+<body>
+  <!-- Accessibility skip link -->
+  <a class="skip-link" href="#main">Skip to content</a>
+
+  <!-- Boot splash (removed by main.js once shell is ready) -->
+  <div id="boot-splash" class="boot-splash" aria-hidden="false">
+    <div class="boot-splash__logo">GS</div>
+    <div class="boot-splash__bar"><span></span></div>
+    <p class="boot-splash__text" data-i18n="common.loading">Loading…</p>
+  </div>
+
+  <!-- App shell -->
+  <div id="app" class="app" hidden>
+    <header class="app__header" role="banner">
+      <a href="#/" class="brand" aria-label="Games Studio 2026 home">
+        <span class="brand__mark">GS</span>
+        <span class="brand__name">Games Studio</span>
+      </a>
+      <nav class="app__nav" aria-label="Primary">
+        <a href="#/" data-route="home" data-i18n="nav.home">Home</a>
+        <a href="#/library" data-route="library" data-i18n="nav.library">Library</a>
+        <a href="#/settings" data-route="settings" data-i18n="nav.settings">Settings</a>
+      </nav>
+      <div class="app__tools">
+        <select id="lang-select" class="lang-select" aria-label="Language"></select>
+      </div>
+    </header>
+
+    <main id="main" class="app__main" role="main">
+      <!-- Views are mounted here by the SPA router (Batch 2) -->
+      <section class="view view--placeholder" data-view="home">
+        <h1 class="view__title" data-i18n="home.title">Premium HTML5 Games</h1>
+        <p class="view__subtitle" data-i18n="home.subtitle">Loading catalog…</p>
+      </section>
+    </main>
+
+    <!-- Top banner ad slot (web) -->
+    <aside class="ad-slot ad-slot--banner" data-ad-slot="catalog-top" aria-label="Advertisement"></aside>
+
+    <footer class="app__footer" role="contentinfo">
+      <div class="app__footer-inner">
+        <p class="app__copy">
+          <span data-i18n="footer.studio">GAMES STUDIO 2026</span>
+          &middot;
+          <span data-i18n="footer.rights">All rights reserved.</span>
+        </p>
+        <nav class="app__footer-nav" aria-label="Legal">
+          <a href="/pages/privacy.html" data-i18n="footer.privacy">Privacy Policy</a>
+          <a href="/pages/terms.html" data-i18n="footer.terms">Terms of Service</a>
+          <a href="/pages/contact.html" data-i18n="footer.contact">Contact</a>
+        </nav>
+      </div>
+    </footer>
+  </div>
+
+  <!-- Bootloader: ES module, async, never blocks main thread -->
+  <script type="module" src="/src/main.js"></script>
+
+  <!-- No-JS fallback -->
+  <noscript>
+    <div style="padding:2rem;text-align:center;color:#fff;background:#0b0f1a;">
+      This game portal requires JavaScript to run. Please enable it.
+    </div>
+  </noscript>
+</body>
+</html>
