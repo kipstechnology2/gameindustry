@@ -16,6 +16,7 @@
 
 import { skyColor, tintOverlay } from './lighting.js';
 import { drawTilemap, highlightTile } from './tile-renderer.js';
+import { drawLampGlow } from './lamp-glow.js';
 
 export class RenderPipeline {
   /**
@@ -32,7 +33,7 @@ export class RenderPipeline {
    * @param {() => boolean} [deps.isDebug]
    */
   constructor({ stack, camera, time, tilemap, entityRenderer, particles,
-                ambientLife, buildMode, getDestTile, isDebug }) {
+                ambientLife, buildMode, world, getDestTile, isDebug }) {
     this.stack = stack;
     this.camera = camera;
     this.time = time;
@@ -41,6 +42,7 @@ export class RenderPipeline {
     this.particles = particles || null;
     this.ambientLife = ambientLife || null;
     this.buildMode = buildMode || null;
+    this.world = world || null;
     this.getDestTile = getDestTile || (() => null);
     this.isDebug = isDebug || (() => false);
 
@@ -126,6 +128,8 @@ export class RenderPipeline {
       uctx.translate(cssW / 2, cssH / 2);
       uctx.scale(camera.zoom, camera.zoom);
       uctx.translate(-camera.x + shake.x, -camera.y + shake.y);
+      // Lamp halos UNDER particles (so rain/steam pass over them)
+      if (this.world) drawLampGlow(uctx, this.world, time);
       if (this.particles) this.particles.render(uctx);
       if (this.ambientLife) this.ambientLife.render(uctx);
       uctx.restore();

@@ -69,7 +69,7 @@ export class Tilemap {
 
 /**
  * Tile type catalog.
- * Each entry: { id, name, r, g, b, walkable }
+ * Each entry: { id, name, r, g, b, walkable, isRoad? }
  *
  * Colors are mid-day full-brightness; lighting module multiplies by ambient.
  */
@@ -83,6 +83,13 @@ export const TILE_TYPES = Object.freeze({
   6: Object.freeze({ id: 6, name: 'flowers-pink', r: 230, g: 168, b: 195, walkable: true  }),
   7: Object.freeze({ id: 7, name: 'wood-floor',   r: 188, g: 142, b: 88,  walkable: true  }),
   8: Object.freeze({ id: 8, name: 'tile-floor',   r: 220, g: 220, b: 226, walkable: true  }),
+
+  // Urban infrastructure (Big City pack)
+  9:  Object.freeze({ id: 9,  name: 'asphalt',     r: 56,  g: 60,  b: 68,  walkable: true,  isRoad: true }),
+  10: Object.freeze({ id: 10, name: 'sidewalk',    r: 178, g: 180, b: 186, walkable: true,  isSidewalk: true }),
+  11: Object.freeze({ id: 11, name: 'crosswalk',   r: 56,  g: 60,  b: 68,  walkable: true,  isRoad: true, isCrosswalk: true }),
+  12: Object.freeze({ id: 12, name: 'grass-park',  r: 132, g: 188, b: 100, walkable: true  }),
+  13: Object.freeze({ id: 13, name: 'cobblestone', r: 168, g: 156, b: 132, walkable: true  }),
 });
 
 /** Looks up tile def; returns void if unknown. */
