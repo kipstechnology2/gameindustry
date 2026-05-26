@@ -86,7 +86,7 @@ import { tileCenter, screenToTile } from './utils/iso-math.js';
 import { lerp } from './utils/grid-math.js';
 import { C, EMOTION } from './components/types.js';
 
-const GAME_VERSION = '0.10.0-batch-3j';
+const GAME_VERSION = '0.13.0-batch-bigcity';
 const DEFAULT_SEED = 0xC1751EE;
 const PINCH_SENSITIVITY = 1.0;
 const WHEEL_ZOOM_FACTOR = 1.12;
@@ -95,15 +95,15 @@ const CAMERA_FREE_TIMEOUT_MS = 2000;
 
 // Particle pool caps per quality tier
 const PARTICLE_CAP_BY_TIER = {
-  ULTRA: 600,
-  HIGH:  250,
-  LOW:   80,
+  ULTRA: 800,   // bumped — bigger map = more space for water/steam/rain
+  HIGH:  350,
+  LOW:   100,
 };
 
 // Butterfly counts per tier
 const BUTTERFLY_BY_TIER = {
-  ULTRA: 6,
-  HIGH:  3,
+  ULTRA: 10,
+  HIGH:  5,
   LOW:   0,
 };
 
@@ -136,12 +136,15 @@ export default function createKipsCity({ mount, params = {}, locale = 'en' } = {
   // ---------------- World ----------------
   const tilemap = buildStarterMap(rng);
   const roomGraph = new RoomGraph(tilemap);
-  const pathfinder = new Pathfinder(tilemap, { roomGraph });
+  // Big map → bump A* node budget so cross-district paths can be found.
+  const pathfinder = new Pathfinder(tilemap, { roomGraph, maxNodes: 16384 });
 
   const camera = new Camera(stack.cssW, stack.cssH);
-  const halfMapW = (STARTER_MAP_COLS + STARTER_MAP_ROWS) * 32;
-  const halfMapH = (STARTER_MAP_COLS + STARTER_MAP_ROWS) * 16;
-  camera.setBounds(-halfMapW * 0.6, -halfMapH * 0.2, halfMapW * 0.6, halfMapH * 1.0);
+  // Big city map bounds — 128×128 tiles → world spans ~ -4096..+4096 px X,
+  // 0..4096 px Y. Add buffer for smooth panning beyond the edge tiles.
+  const halfMapW = (STARTER_MAP_COLS + STARTER_MAP_ROWS) * 32 / 2;
+  const halfMapH = (STARTER_MAP_COLS + STARTER_MAP_ROWS) * 16 / 2;
+  camera.setBounds(-halfMapW * 1.0, -halfMapH * 0.2, halfMapW * 1.0, halfMapH * 2.1);
 
   const spawnTile = getStarterSpawn();
   const spawnPx = tileCenter(spawnTile.col, spawnTile.row);
@@ -158,8 +161,8 @@ export default function createKipsCity({ mount, params = {}, locale = 'en' } = {
   const particles = new ParticleSystem(PARTICLE_CAP_BY_TIER[initialTier] || PARTICLE_CAP_BY_TIER.HIGH);
   const ambientLife = new AmbientLife();
   ambientLife.setMaxButterflies(BUTTERFLY_BY_TIER[initialTier] || BUTTERFLY_BY_TIER.HIGH);
-  // Bound the butterfly drift area to the visible map
-  ambientLife.setBounds(-halfMapW * 0.4, -halfMapH * 0.1, halfMapW * 0.4, halfMapH * 0.7);
+  // Big city: butterflies drift across the whole map
+  ambientLife.setBounds(-halfMapW, -halfMapH * 0.1, halfMapW, halfMapH * 1.8);
 
   // ---------------- Entities ----------------
   const playerId = createPlayer(world, spawnTile, { avatarId: 'player' });
@@ -385,6 +388,7 @@ export default function createKipsCity({ mount, params = {}, locale = 'en' } = {
     particles,
     ambientLife,
     buildMode,
+    world,
     getDestTile: () => inputSystem.lastDest,
     isDebug: () => debug.visible,
   });
