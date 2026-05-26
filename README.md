@@ -1,6 +1,6 @@
-# Games Studio 2026
+# Kips Game Studio
 
-Premium HTML5 Game Portal — a vanilla-JS, modular, **offline-first PWA** that hosts unlimited HTML5 games under one cinematic, mobile-first hub. Built to ship to **Web (AdSense)**, **Google Play (TWA / Capacitor)**, and **App Store (Capacitor)**.
+Premium HTML5 Game Portal by **KIPS TECHNOLOGY** — a vanilla-JS, modular, **offline-first PWA** that hosts unlimited HTML5 games under one cinematic, mobile-first hub. Built to ship to **Web (AdSense)**, **Google Play (TWA / Capacitor)**, and **App Store (Capacitor)**.
 
 > Status: scaffolding in progress. See "Roadmap" below.
 
@@ -110,5 +110,5 @@ Then visit `http://localhost:8080`.
 
 ## License & Branding
 
-© Games Studio 2026. All rights reserved.
-Contact: `support@gamesstudio2026.com`
+© 2026 KIPS TECHNOLOGY. All rights reserved.
+Contact: `support@kipstechnology.com`

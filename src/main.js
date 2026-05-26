@@ -1,5 +1,5 @@
 /**
- * Bootloader — Games Studio 2026
+ * Bootloader — Kips Game Studio (KIPS TECHNOLOGY)
  *
  * Order of operations (NEVER block the main thread):
  *  1. Render shell skeleton (already in HTML).

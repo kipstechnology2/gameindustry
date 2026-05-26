@@ -1,86 +1,126 @@
 /**
- * Input System — translates user taps into pathfind requests for the player.
+ * Input System — mode-aware tap dispatcher.
  *
- * Behavior:
- *   - Tap on a walkable tile → request path from player tile to clicked tile,
- *     write the resulting waypoints into the player's Path component.
- *   - Tap on an unwalkable tile → ignore (with a tiny camera shake for
- *     subtle feedback so the player learns the tile types).
- *   - Pan/zoom/pinch are handled directly by game.js wiring; this system
- *     only owns the tap-to-move semantic.
- *
- * The system is event-driven (subscribes once on construction, unsubscribes
- * on destroy). It does not run per-frame.
+ * Supports four modes (set externally via setMode):
+ *   - 'play'          (default) tap object → onObjectTap; tap tile → walk + onTileTap
+ *   - 'build-place'   tap tile → onTileTap (placement); object taps fall through
+ *   - 'build-select'  tap object → onObjectTap (delete); tile taps ignored
+ *   - 'disabled'      ignores all taps
  */
 
 import { C } from '../components/types.js';
 import { screenToTile } from '../utils/iso-math.js';
 import { entityTile } from '../entities/player.js';
 
+const OBJECT_HIT_RADIUS = 36; // world-px around object center
+
+export const INPUT_MODE = Object.freeze({
+  PLAY:         'play',
+  BUILD_PLACE:  'build-place',
+  BUILD_SELECT: 'build-select',
+  DISABLED:     'disabled',
+});
+
 export class InputSystem {
-  /**
-   * @param {object} deps
-   * @param {import('../ecs/world.js').World} deps.world
-   * @param {import('../utils/input-router.js').InputRouter} deps.input
-   * @param {import('../world/camera.js').Camera} deps.camera
-   * @param {import('../world/pathfinder.js').Pathfinder} deps.pathfinder
-   * @param {import('../world/tilemap.js').Tilemap} deps.tilemap
-   * @param {() => number} deps.getPlayerId  callback returning the current player entity id
-   */
-  constructor({ world, input, camera, pathfinder, tilemap, getPlayerId }) {
+  constructor({ world, input, camera, pathfinder, tilemap,
+                getPlayerId, onObjectTap, onTileTap }) {
     this.world = world;
     this.input = input;
     this.camera = camera;
     this.pathfinder = pathfinder;
     this.tilemap = tilemap;
     this.getPlayerId = getPlayerId;
+    this.onObjectTap = onObjectTap || null;
+    this.onTileTap = onTileTap || null;
 
-    /** Path destination for HUD/debug rendering. */
+    this.mode = INPUT_MODE.PLAY;
     this.lastDest = null;
 
     this._offTap = input.on('tap', (sx, sy) => this._onTap(sx, sy));
   }
 
+  setMode(mode) {
+    this.mode = mode;
+  }
+
   _onTap(screenX, screenY) {
+    if (this.mode === INPUT_MODE.DISABLED) return;
     const playerId = this.getPlayerId();
     if (!playerId) return;
 
-    // Screen → world (camera transform)
+    // Screen → world
     const wx = (screenX - this.camera.viewportW / 2) / this.camera.zoom + this.camera.x;
     const wy = (screenY - this.camera.viewportH / 2) / this.camera.zoom + this.camera.y;
 
-    // World → tile (subtract HH so we hit the *center* of the diamond)
+    // Object hit-test
+    const obj = this._objectAt(wx, wy);
+    if (obj && this.mode !== INPUT_MODE.BUILD_PLACE) {
+      if (this.onObjectTap) {
+        this.onObjectTap({ objectEntityId: obj.id, screenX, screenY });
+      }
+      return;
+    }
+
+    // In build-select, ignore tile taps
+    if (this.mode === INPUT_MODE.BUILD_SELECT) return;
+
+    // Tile tap
     const tile = screenToTile(wx, wy - 16);
     const goalCol = Math.round(tile.col);
     const goalRow = Math.round(tile.row);
 
-    if (!this.pathfinder.isWalkable(goalCol, goalRow)) {
-      // Subtle UX: feedback that the tile isn't walkable
-      this.camera.shake(2);
+    // Build-place: hand off to onTileTap, do not walk
+    if (this.mode === INPUT_MODE.BUILD_PLACE) {
+      if (this.onTileTap) this.onTileTap({ col: goalCol, row: goalRow, screenX, screenY });
       return;
     }
 
+    // Default play mode: walk there
+    if (!this.pathfinder.isWalkable(goalCol, goalRow)) {
+      this.camera.shake(2);
+      return;
+    }
     const startTile = entityTile(this.world, playerId);
     if (!startTile) return;
-
     const path = this.world.getComponent(playerId, C.Path);
     if (!path) return;
 
     const waypoints = this.pathfinder.find(
-      startTile.col, startTile.row,
-      goalCol, goalRow
+      startTile.col, startTile.row, goalCol, goalRow
     );
-
     if (!waypoints) {
-      // No path (rare on this map, but possible if tiles get disconnected)
       this.camera.shake(3);
       return;
     }
-
-    // Writing into the existing component preserves entity archetype
     path.waypoints = waypoints;
     path.index = 0;
     this.lastDest = { col: goalCol, row: goalRow };
+
+    // Cancel any in-progress player intent — explicit movement overrides
+    const intent = this.world.getComponent(playerId, C.Intent);
+    if (intent) {
+      intent.phase = 'idle';
+      intent.actionId = null;
+      intent.target = null;
+    }
+
+    if (this.onTileTap) this.onTileTap({ col: goalCol, row: goalRow, screenX, screenY });
+  }
+
+  _objectAt(wx, wy) {
+    let best = null;
+    let bestDistSq = OBJECT_HIT_RADIUS * OBJECT_HIT_RADIUS;
+    for (const e of this.world.query([C.Transform, C.Interactable])) {
+      const t = e[C.Transform];
+      const dx = t.x - wx;
+      const dy = t.y - wy;
+      const d2 = dx * dx + dy * dy;
+      if (d2 < bestDistSq) {
+        bestDistSq = d2;
+        best = e;
+      }
+    }
+    return best;
   }
 
   destroy() {
