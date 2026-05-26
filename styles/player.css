@@ -5,7 +5,7 @@
 .kc-play-root {
   position: fixed;
   inset: 0;
-  z-index: 200;
+  z-index: 9999; /* Above EVERYTHING — hub header, nav, footer, modals */
   display: flex;
   flex-direction: column;
   background: #07090f;
@@ -13,6 +13,29 @@
   /* Disable iOS rubber-banding on the player */
   overscroll-behavior: contain;
   touch-action: none;
+}
+
+/* When game is fullscreen, hide the hub shell completely so nothing bleeds through */
+body:has(.kc-play-root) .app__header,
+body:has(.kc-play-root) .app__footer,
+body:has(.kc-play-root) .ad-slot {
+  display: none !important;
+}
+
+/* True browser fullscreen: fill entire viewport, no safe-area offsets */
+.kc-play-root:fullscreen,
+.kc-play-root:-webkit-full-screen {
+  padding: 0;
+}
+.kc-play-root:fullscreen .kc-play-exit,
+.kc-play-root:-webkit-full-screen .kc-play-exit {
+  top: 12px;
+  left: 12px;
+}
+.kc-play-root:fullscreen .kc-play-fullscreen,
+.kc-play-root:-webkit-full-screen .kc-play-fullscreen {
+  top: 12px;
+  right: 12px;
 }
 
 .kc-play-root,
@@ -88,31 +111,34 @@
   margin: 0;
 }
 
-/* Floating Exit button (top-left, safe-area aware) */
+/* Floating Exit button (top-left, safe-area aware, semi-transparent until hover) */
 .kc-play-exit {
   position: absolute;
   top: calc(env(safe-area-inset-top, 0px) + 12px);
   left: calc(env(safe-area-inset-left, 0px) + 12px);
   z-index: 11;
-  padding: var(--s-2) var(--s-4);
-  font-size: var(--fs-sm);
-  background: rgba(15, 22, 38, 0.78);
-  color: var(--c-text);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: var(--r-pill);
+  padding: var(--s-2, 8px) var(--s-3, 12px);
+  font-size: 12px;
+  background: rgba(15, 22, 38, 0.6);
+  color: rgba(255, 255, 255, 0.8);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 10px;
   font-weight: 600;
   cursor: pointer;
   backdrop-filter: blur(10px) saturate(120%);
   -webkit-backdrop-filter: blur(10px) saturate(120%);
   display: inline-flex;
   align-items: center;
-  gap: var(--s-1);
-  transition: background var(--t-fast), border-color var(--t-fast), transform var(--t-fast);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+  gap: 4px;
+  transition: background 160ms ease, border-color 160ms ease, transform 100ms ease, opacity 300ms ease;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.25);
+  opacity: 0.65;
 }
 .kc-play-exit:hover {
   background: rgba(20, 28, 50, 0.92);
   border-color: rgba(255, 255, 255, 0.18);
+  color: #fff;
+  opacity: 1;
 }
 .kc-play-exit:active {
   transform: scale(0.97);
@@ -127,4 +153,42 @@
 .view--play-error h1 {
   color: var(--c-text);
   margin-bottom: var(--s-3);
+}
+
+
+
+/* Fullscreen toggle button (top-right) */
+.kc-play-fullscreen {
+  position: absolute;
+  top: calc(env(safe-area-inset-top, 0px) + 12px);
+  right: calc(env(safe-area-inset-right, 0px) + 12px);
+  z-index: 11;
+  width: 40px;
+  height: 40px;
+  display: grid;
+  place-items: center;
+  font-size: 18px;
+  background: rgba(15, 22, 38, 0.78);
+  color: var(--c-text, #e9edf5);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  cursor: pointer;
+  backdrop-filter: blur(10px) saturate(120%);
+  -webkit-backdrop-filter: blur(10px) saturate(120%);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+  transition: background 160ms ease, border-color 160ms ease, transform 100ms ease;
+  user-select: none;
+  -webkit-user-select: none;
+  line-height: 1;
+}
+.kc-play-fullscreen:hover {
+  background: rgba(20, 28, 50, 0.92);
+  border-color: rgba(255, 255, 255, 0.18);
+}
+.kc-play-fullscreen:active {
+  transform: scale(0.93);
+}
+/* Hide if Fullscreen API is not supported */
+.kc-play-fullscreen[hidden] {
+  display: none !important;
 }

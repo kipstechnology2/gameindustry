@@ -51,9 +51,44 @@ export default async function playView({ mount, params, router }) {
     'data-ripple': '',
     'aria-label': 'Exit game',
   }, ['‹ ', el('span', { 'data-i18n': 'common.exit' }, [t('common.exit') || 'Exit'])]);
-  exitBtn.addEventListener('click', () => router.navigate(`/game/${game.id}`));
+  exitBtn.addEventListener('click', () => {
+    // Exit fullscreen if we're in it, then navigate back
+    if (document.fullscreenElement || document.webkitFullscreenElement) {
+      (document.exitFullscreen || document.webkitExitFullscreen).call(document);
+    }
+    router.navigate(`/game/${game.id}`);
+  });
   root.appendChild(exitBtn);
   applyI18n(exitBtn, t);
+
+  // ---------- Fullscreen button (top-right) ----------
+  const canFullscreen = !!(
+    document.documentElement.requestFullscreen ||
+    document.documentElement.webkitRequestFullscreen
+  );
+  const fullscreenBtn = el('button', {
+    type: 'button',
+    class: 'kc-play-fullscreen',
+    'aria-label': 'Toggle fullscreen',
+    hidden: canFullscreen ? undefined : '',
+  }, ['⛶']);
+  fullscreenBtn.addEventListener('click', () => {
+    if (document.fullscreenElement || document.webkitFullscreenElement) {
+      (document.exitFullscreen || document.webkitExitFullscreen).call(document);
+    } else {
+      const reqFS = root.requestFullscreen || root.webkitRequestFullscreen;
+      if (reqFS) reqFS.call(root);
+    }
+  });
+  // Update icon on fullscreen change
+  const onFSChange = () => {
+    const isFS = !!(document.fullscreenElement || document.webkitFullscreenElement);
+    fullscreenBtn.textContent = isFS ? '⮌' : '⛶';
+    fullscreenBtn.setAttribute('aria-label', isFS ? 'Exit fullscreen' : 'Enter fullscreen');
+  };
+  document.addEventListener('fullscreenchange', onFSChange);
+  document.addEventListener('webkitfullscreenchange', onFSChange);
+  root.appendChild(fullscreenBtn);
 
   // ---------- Loading overlay ----------
   const loading = el('div', { class: 'kc-play-loading' }, [
@@ -114,6 +149,13 @@ export default async function playView({ mount, params, router }) {
   return {
     async unmount() {
       unmounted = true;
+      // Cleanup fullscreen listeners
+      document.removeEventListener('fullscreenchange', onFSChange);
+      document.removeEventListener('webkitfullscreenchange', onFSChange);
+      // Exit fullscreen if still in it
+      if (document.fullscreenElement || document.webkitFullscreenElement) {
+        try { await (document.exitFullscreen || document.webkitExitFullscreen).call(document); } catch {}
+      }
       if (controller && typeof controller.destroy === 'function') {
         try { await controller.destroy(); } catch (e) { console.warn('[play] destroy threw', e); }
       }
